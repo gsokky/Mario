@@ -4,9 +4,7 @@
 class Brick : public bgObject {
 	int brickNumber;
 public:
-	//dummmy constructor
 	Brick();
+	void initializeBricks(Brick*);
 	void setBrickNumber(int);
-	////parameterized constructor
-	//Brick(int);
 };

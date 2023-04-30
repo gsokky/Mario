@@ -1,13 +1,13 @@
 #include "Common.h"
 #include "Floor.h"
 #include "Brick.h"
-//#include "Tunnel.h"
+#include "Pipe.h"
 
 class Game {
 	RenderWindow* window;
 	Floor floor;
 	Brick* bricks;
-	//Tunnel tunnels;
+	Pipe pipes;
 
 public:
 	Game();
