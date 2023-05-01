@@ -5,4 +5,5 @@ class Pipe : public bgObject {
 
 public:
 	Pipe();
+	Pipe(String, bool);
 };

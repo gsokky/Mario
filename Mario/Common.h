@@ -6,5 +6,5 @@
 using namespace std;
 using namespace sf;
 
-#define WINDOW_WIDTH 128
-#define WINDOW_HEIGHT 128
+#define WINDOW_WIDTH 960
+#define WINDOW_HEIGHT 960

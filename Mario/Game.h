@@ -7,7 +7,7 @@ class Game {
 	RenderWindow* window;
 	Floor floor;
 	Brick* bricks;
-	Pipe pipes;
+	Pipe* pipes;
 
 public:
 	Game();
