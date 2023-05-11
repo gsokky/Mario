@@ -10,3 +10,8 @@ void bgObject::draw(RenderWindow* window)
 {
 	window->draw(sprite);
 }
+
+FloatRect bgObject::boundingBox()
+{
+	return sprite.getGlobalBounds();
+}

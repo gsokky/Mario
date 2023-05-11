@@ -1,7 +1,5 @@
 #include "Pipe.h"
 
-Pipe::Pipe(){}
-
 Pipe::Pipe(String text, bool rotate)
 {
 	if (text == "pipe")

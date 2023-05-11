@@ -9,4 +9,6 @@ protected:
 public:
 	void setPosition(Vector2f);
 	void draw(RenderWindow*);
+	FloatRect boundingBox(void);
 };
+
