@@ -27,6 +27,7 @@
     <ClCompile Include="Mario.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Pipe.cpp" />
+    <ClCompile Include="Turtle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bgObject.h" />
@@ -37,6 +38,7 @@
     <ClInclude Include="Mario.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Pipe.h" />
+    <ClInclude Include="Turtle.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

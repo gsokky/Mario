@@ -3,6 +3,7 @@
 #include "Brick.h"
 #include "Pipe.h"
 #include "Mario.h"
+#include "Turtle.h"
 
 class Game {
 	RenderWindow* window;
@@ -12,8 +13,10 @@ class Game {
 	Pipe* pipes;
 	Object* objects;
 	Mario* mario;
+	Turtle* turtle;
 	Mario* addMario(void);
-	//Turtle* addTurtle(void);
+	Turtle* addTurtle(void);
+	bool jumpPeak = false;
 
 public:
 	Game(int);
@@ -23,5 +26,7 @@ public:
 	void drawObjects(void);
 	void removeObject(Object*);
 	bool onFloor(Object*);
+	bool checkSideIntersection(Object*, int);
+	bool checkUpperIntersection(Object*);
 
 };

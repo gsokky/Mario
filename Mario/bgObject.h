@@ -3,6 +3,7 @@
 
 class bgObject {
 	Vector2f pos;
+	friend class Game;
 protected:
 	Texture texture;
 	Sprite sprite;

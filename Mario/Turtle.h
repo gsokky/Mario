@@ -2,12 +2,13 @@
 #include "Common.h"
 #include "Object.h"
 
-class Mario : public Object {
+class Turtle : public Object {
 public:
-	WalkDirection dir;
-	Mario();
+	bool sideCollision;
+	int side;
+	bool setObjectVisible = true;
+	Turtle();
 	void move(void);
-	void standStill(void);
 	void fall(void);
 	void jump(bool);
 };

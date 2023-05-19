@@ -1,3 +1,4 @@
+#pragma once
 #include "Common.h"
 
 class Object {
@@ -10,8 +11,10 @@ protected:
 	int state;
 	int heading;
 	float objectSpeed;
+	float objectVerticalSpeed;
 	float vx;
 	float vy;
+	bool jumpStatus = false;
 public:
 	enum WalkDirection {
 		Up,
@@ -19,11 +22,13 @@ public:
 		Left,
 		Right
 	};
+	bool onFloor = false;
+	int prevSide;
 	void setPosition(Vector2f);
 	Vector2f getPosition();
 	FloatRect boundingBox(void);
 	void draw(RenderWindow*);
-	virtual void move(WalkDirection) = 0;
+	virtual void move(void) = 0;
 	virtual void fall(void) = 0;
 	virtual void jump(bool) = 0;
 	virtual ~Object() {

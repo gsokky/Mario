@@ -18,5 +18,6 @@ void Object::draw(RenderWindow* window)
 
 FloatRect Object::boundingBox()
 {
+	
 	return sprite.getGlobalBounds();
 }
