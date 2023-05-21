@@ -17,6 +17,7 @@ class Game {
 	Mario* addMario(void);
 	Turtle* addTurtle(void);
 	bool jumpPeak = false;
+	int side;
 
 public:
 	Game(int);
@@ -28,5 +29,5 @@ public:
 	bool onFloor(Object*);
 	bool checkSideIntersection(Object*, int);
 	bool checkUpperIntersection(Object*);
-
+	bool checkCollision(Turtle*, Mario*, int&);
 };

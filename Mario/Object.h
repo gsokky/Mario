@@ -15,6 +15,7 @@ protected:
 	float vx;
 	float vy;
 	bool jumpStatus = false;
+	bool fallStatus;
 public:
 	enum WalkDirection {
 		Up,

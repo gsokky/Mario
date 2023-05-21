@@ -18,7 +18,9 @@ Turtle::Turtle()
 	vy = 0;
 	sideCollision = false;
 	prevSide = 1;
-	side = 1;
+	turtleDir = 1;
+	fallStatus = false;
+
 	//scales the width and height of turtles
 	sprite.setScale(Vector2f(float(WINDOW_WIDTH) / float(textures[state - 1].getSize().x * 32.0f / 2.0f), float(WINDOW_HEIGHT) / float(textures[state - 1].getSize().y * 25.0f / 2.0f)));
 }
@@ -32,7 +34,7 @@ void Turtle::move()
 		{
 			sprite.scale(-1.0f, 1.0f);
 			vx = -vx;
-			side ^= 1;
+			turtleDir ^= 1;
 		}
 		sprite.move(Vector2f(vx, 0));
 		state = 2;
@@ -42,7 +44,7 @@ void Turtle::move()
 		{
 			sprite.scale(-1.0f, 1.0f);
 			vx = -vx;
-			side ^= 1;
+			turtleDir ^= 1;
 		}
 		sprite.move(Vector2f(vx, 0));
 		state = 3;
@@ -52,7 +54,7 @@ void Turtle::move()
 		{
 			sprite.scale(-1.0f, 1.0f);
 			vx = -vx;
-			side ^= 1;
+			turtleDir ^= 1;
 		}
 		sprite.move(Vector2f(vx, 0));
 		state = 1;
@@ -63,7 +65,14 @@ void Turtle::move()
 
 void Turtle::fall()
 {
+	sprite.setTexture(textures[4]);
+	sprite.move(Vector2f(0, objectVerticalSpeed));
 
+	if (sprite.getPosition().y > WINDOW_HEIGHT + sprite.getGlobalBounds().height / 2.0f)
+		fallStatus = false;
+
+	else
+		fallStatus = true;
 }
 
 void Turtle::jump(bool down)

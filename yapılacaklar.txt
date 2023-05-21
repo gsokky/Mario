@@ -1,3 +1,4 @@
 pipe[1] ve pipe[3] sideIntersection bug'ı
-turtle'ların giderek hızlanması
-checkCollision()
+scoreboard
+bonuslar
+

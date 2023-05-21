@@ -5,8 +5,8 @@
 class Turtle : public Object {
 public:
 	bool sideCollision;
-	int side;
-	bool setObjectVisible = true;
+	int turtleDir;
+	bool isObjectVisible = true;
 	Turtle();
 	void move(void);
 	void fall(void);

@@ -14,11 +14,12 @@ Mario::Mario()
 	sprite.setOrigin(textures[state].getSize().x / 2.0, textures[state].getSize().y / 2.0);
 	sprite.setTexture(textures[state - 1]);
 	objectSpeed = 12.0f;
-	objectVerticalSpeed = 7.0f;
+	objectVerticalSpeed = 10.0f;
 	vx = 0;
 	vy = 0;
 	dir = WalkDirection::Left;
 	prevSide = 0;
+	fallStatus = false;
 
 	//scales the width and height of mario
 	sprite.setScale(Vector2f(float(WINDOW_WIDTH) / float(textures[state-1].getSize().x * 32.0f / 2.0f), float(WINDOW_HEIGHT) / float(textures[state-1].getSize().y * 10)));
@@ -109,7 +110,16 @@ void Mario::standStill()
 }
 void Mario::fall()
 {
+	sprite.setTexture(textures[6]);
+	sprite.move(Vector2f(0, objectVerticalSpeed));
 
+	if (sprite.getPosition().y > WINDOW_HEIGHT + 5 * sprite.getGlobalBounds().height / 2.0f)
+	{
+		fallStatus = false;
+		setPosition(Vector2f(WINDOW_WIDTH / 2.0f, float(WINDOW_HEIGHT * 19.0f / 25.0f)));
+	}
+	else
+		fallStatus = true;
 }
 
 void Mario::jump(bool down)
