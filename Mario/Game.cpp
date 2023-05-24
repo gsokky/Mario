@@ -246,6 +246,8 @@ void Game::update(void)
 		}
 		window->clear();
 
+		checkGameStatus();
+
 		//draw bacground objects
 		floor.draw(window);
 
@@ -260,8 +262,6 @@ void Game::update(void)
 		drawLives();
 
 		drawScore();
-
-		checkGameStatus();
 
 		window->display();
 
@@ -544,7 +544,7 @@ void Game::menu(int speed)
 	while (window->isOpen()) 
 	{
 		window->clear();
-		text.setString("Start a new game (Enter)\nExit (Esc)");
+		text.setString("Start a new game (Enter)\n\nExit (Esc)");
 		text.setCharacterSize(36);
 		text.setStyle(Text::Bold);
 		window->draw(text);
@@ -600,9 +600,9 @@ bool Game::turtleCollision(Turtle* t)
 	{
 		if (dynamic_cast<Turtle*>(tur) && tur != t)
 		{
-			//if ((t->sprite.getPosition().y - tur->sprite.getPosition().y < t->objectVerticalSpeed) &&
-			//	t->turtleDir != dynamic_cast<Turtle*>(tur)->turtleDir)
-			//{
+			if ((t->sprite.getPosition().y - tur->sprite.getPosition().y < t->objectVerticalSpeed) &&
+				t->turtleDir != dynamic_cast<Turtle*>(tur)->turtleDir)
+			{
 				if (t->turtleDir == 0 &&
 					t->sprite.getPosition().x - t->boundingBox().width / 2.0f - (tur->sprite.getPosition().x + tur->boundingBox().width / 2.0f) < t->objectSpeed)
 				{
@@ -615,7 +615,7 @@ bool Game::turtleCollision(Turtle* t)
 
 					return true;
 				}
-			//}
+			}
 		}
 		tur = tur->next;
 	}
