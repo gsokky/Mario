@@ -3,7 +3,9 @@
 
 int main()
 {
+
 	Game game(50);
-	game.update();
+	game.menu(50);
+	
 	return 0;
 }

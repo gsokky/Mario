@@ -4,6 +4,7 @@
 #include "Pipe.h"
 #include "Mario.h"
 #include "Turtle.h"
+#include "ScoreBoard.h"
 
 class Game {
 	RenderWindow* window;
@@ -18,6 +19,10 @@ class Game {
 	Turtle* addTurtle(void);
 	bool jumpPeak = false;
 	int side;
+	ScoreBoard scoreboard;
+	int score;
+	Text text;
+	Font font;
 
 public:
 	Game(int);
@@ -30,4 +35,10 @@ public:
 	bool checkSideIntersection(Object*, int);
 	bool checkUpperIntersection(Object*);
 	bool checkCollision(Turtle*, Mario*, int&);
-};
+	void drawScore(void);
+	void drawLives(void);
+	bool checkGameStatus(void);
+	void menu(int);
+	bool turtleCollision(Turtle*);
+
+	};

@@ -9,6 +9,11 @@ Game::Game(int speed)
 	mario = addMario();
 	mario->setPosition(Vector2f(WINDOW_WIDTH / 2.0f, float(WINDOW_HEIGHT * 19.0f / 25.0f)));
 	side = 0;
+	score = 0;
+
+	font.loadFromFile("../assets/font.ttf");
+	text.setFont(font);
+
 }
 
 void Game::drawBackground(RenderWindow& window)
@@ -50,7 +55,7 @@ void Game::update(void)
 	{
 		Time elapsed = clock.getElapsedTime();
 
-		if (elapsed.asSeconds() > 5.0f && turtleNumber < 5)
+		if (elapsed.asSeconds() > TURTLE_SPAWN_PERIOD && turtleNumber < MAX_TURTLE_NUMBER)
 		{
 			turtle = addTurtle();
 			++turtleNumber;
@@ -67,31 +72,28 @@ void Game::update(void)
 			}
 			clock.restart();
 		}
-
 		Event event;
 		window->setKeyRepeatEnabled(false);
 		while (window->pollEvent(event))
 		{
 			switch (event.type)
 			{
-			case Event::KeyPressed:
-				if (!mario->fallStatus) {
-					if (!moving_right && event.key.code == (sf::Keyboard::Left))
-					{
-						moving_left = true;
-						marioDir = 0;
-					}
-					else if (!moving_left && event.key.code == (sf::Keyboard::Right))
-					{
-						moving_right = true;
-						marioDir = 1;
-					}
-
-					if (event.key.code == (sf::Keyboard::Up)) {
-						moving_up = true;
-					}
-					break;
+		case Event::KeyPressed:
+				if (!moving_right && event.key.code == (sf::Keyboard::Left))
+				{
+					moving_left = true;
+					marioDir = 0;
 				}
+				else if (!moving_left && event.key.code == (sf::Keyboard::Right))
+				{
+					moving_right = true;
+					marioDir = 1;
+				}
+
+				if (event.key.code == (sf::Keyboard::Up)) {
+					moving_up = true;
+				}
+			break;
 
 			case Event::KeyReleased:
 				if (event.key.code == sf::Keyboard::Right)
@@ -116,113 +118,132 @@ void Game::update(void)
 				break;
 			}
 		}
+		if (!checkGameStatus()) // if the game is over, stop the game execution
+		{
+			//set the horizontal velocity as 0 if it intersects any background object from side or the window borders
+			checkSideIntersection(mario, marioDir);
+			if (!mario->fallStatus) {
 
-		//set the horizontal velocity as 0 if it intersects any background object from side or the window borders
-		checkSideIntersection(mario, marioDir);
-
-		if (moving_up == true && mario->onFloor)
-		{
-			cout << "up" << endl;
-			if (mario->jumpStatus == false) {
-				mario->vy = MARIO_JUMP_SPEED;
-			}
-			mario->jumpStatus = true;
-		}
-		if (moving_right == true)
-		{
-			mario->dir = Mario::WalkDirection::Right;
-			mario->move();
-		}
-		else if (moving_left == true)
-		{
-			mario->dir = Mario::WalkDirection::Left;
-			mario->move();
-		}
-
-		// check for collisions between turtles and mario
-		Object* tur = objects;
-		while (tur)
-		{
-			if (tur != mario)
-			{
-				if (checkCollision(dynamic_cast<Turtle*>(tur), mario, side) || mario->fallStatus || tur->fallStatus)
+				if (moving_up == true && mario->onFloor)
 				{
-					if (side == 0 || tur->fallStatus)	//mario jumps on turtle
+					if (mario->jumpStatus == false) {
+						mario->vy = MARIO_JUMP_SPEED;
+					}
+					mario->jumpStatus = true;
+				}
+				if (moving_right == true)
+				{
+					mario->dir = Mario::WalkDirection::Right;
+					mario->move();
+				}
+				else if (moving_left == true)
+				{
+					mario->dir = Mario::WalkDirection::Left;
+					mario->move();
+				}
+			}
+			// check for collisions between turtles and mario
+			Object* tur = objects;
+			while (tur)
+			{
+				if (tur != mario)
+				{
+					if (checkCollision(dynamic_cast<Turtle*>(tur), mario, side) || mario->fallStatus || tur->fallStatus)
 					{
-						tur->fall();
-						if (!tur->fallStatus) 
+						if (side == 0 || tur->fallStatus)	//mario jumps on turtle
 						{
-							removeObject(tur);
+							tur->fall();
+							if (!tur->fallStatus)
+							{
+								score += 100;
+								scoreboard.setScore(score);
+								removeObject(tur);
+								break;
+							}
+						}
+						if (side == 1 || mario->fallStatus)
+						{
+							// if it has been 2 seconds since the last spawn of mario
+							if (clock2.getElapsedTime().asSeconds() > RESPAWN_PROTECTION_TIME) {
+								mario->fall();
+								if (!mario->fallStatus)
+								{
+									// if mario  has fallen down, take his one live
+									scoreboard.setLives(scoreboard.getLives() - 1);
+									clock2.restart();
+								}
+							}
 							break;
 						}
 					}
-					if (side == 1 || mario->fallStatus)
+				}
+				tur = tur->next;
+			}
+
+			Object* cur = objects;
+			while (cur)
+			{
+				//check if the turtles collide with a background object
+				if (dynamic_cast<Turtle*>(cur) && !dynamic_cast<Turtle*>(cur)->fallStatus)
+				{
+					if (checkSideIntersection(cur, dynamic_cast<Turtle*>(cur)->turtleDir))
 					{
-						// if it has been 2 seconds since the last spawn of mario
-						if (clock2.getElapsedTime().asSeconds() > 2.0f) {
-							mario->fall();
-							if (!mario->fallStatus)
-								clock2.restart();
-						}
-						break;
+						dynamic_cast<Turtle*>(cur)->sideCollision = true;
+						//if all turtles are created, increase their speed each time they change direction
+						if (turtleNumber == 5 && abs(cur->vx) < MAX_TURTLE_SPEED)
+							cur->vx += (cur->vx > 0 ? 0.1f : -0.1f);
 					}
+					else
+						dynamic_cast<Turtle*>(cur)->sideCollision = false;
+
+					cur->move();
 				}
-			}
-			tur = tur->next;
-		}
 
-		Object* cur = objects;
-		while (cur)
-		{
-			//check if the turtles collide with a background object
-			if (dynamic_cast<Turtle*>(cur) && !dynamic_cast<Turtle*>(cur)->fallStatus)
-			{
-				if (checkSideIntersection(cur, dynamic_cast<Turtle*>(cur)->turtleDir)) 
+				//// turtle collision
+				//if (dynamic_cast<Turtle*>(cur)) {
+				//	if (turtleCollision(dynamic_cast<Turtle*>(cur)))
+				//		dynamic_cast<Turtle*>(cur)->sideCollision = true;
+				//	else
+				//		dynamic_cast<Turtle*>(cur)->sideCollision = false;
+
+				//}
+
+				// check if the objects are on ground or falling
+				if (!onFloor(cur) && !cur->fallStatus)
 				{
-					dynamic_cast<Turtle*>(cur)->sideCollision = true;
-					//if all turtles are created, increase their speed each time they change direction
-					if (turtleNumber == 5 && abs(cur->vx) < MAX_TURTLE_SPEED)
-						cur->vx += (cur->vx > 0 ? 0.1f : -0.1f);
-				}
-				else
-					dynamic_cast<Turtle*>(cur)->sideCollision = false;
-
-				cur->move();
-			}
-
-			// check if the objects are on ground or falling
-			if (!onFloor(cur) && !cur->fallStatus)
-			{
-				if (!cur->jumpStatus)	//falling
-				{
-					cur->jump(true);
-					cout << "jumpdown" << endl;
-				}
-				else
-				{
-					if (checkUpperIntersection(cur))
-						continue;
-
-					if (cur->vy < 0)	//jumping
+					if (!cur->jumpStatus)	//falling
 					{
-						cur->vy += 1;	//decreasing vertical speed until the peak point
-						cur->jump(false);
+						cur->jump(true);
 					}
 					else
 					{
-						cur->jumpStatus = false;
+						if (checkUpperIntersection(cur))
+							continue;
+
+						if (cur->vy < 0)	//jumping
+						{
+							cur->vy += 1;	//decreasing vertical speed until the peak point
+							cur->jump(false);
+						}
+						else
+						{
+							cur->jumpStatus = false;
+						}
 					}
 				}
-			}
-			else
-			{
-				cout << "dont jump domw" << endl;
-				cur->jumpStatus = false;
-			}
+				else
+				{
+					cur->jumpStatus = false;
+				}
 
-			cur = cur->next;
+				cur = cur->next;
+			}
 		}
-
+		else
+		{
+			// stop the game and return to menu
+			return;
+		}
 		window->clear();
 
 		//draw bacground objects
@@ -235,6 +256,12 @@ void Game::update(void)
 			pipes[i].draw(window);
 
 		drawObjects();
+
+		drawLives();
+
+		drawScore();
+
+		checkGameStatus();
 
 		window->display();
 
@@ -295,7 +322,6 @@ bool Game::onFloor(Object* obj)
 	if (floor.sprite.getPosition().y - obj->sprite.getPosition().y - obj->sprite.getGlobalBounds().height / 2.0f < obj->objectVerticalSpeed && 
 		!obj->jumpStatus)
 	{
-		cout << "floor intersect" << endl;
 		if (obj->vy > 0)
 		{
 			//stop falling when hit the floor and set the correct texture
@@ -315,8 +341,6 @@ bool Game::onFloor(Object* obj)
 			(bricks[i].sprite.getPosition().x + bricks[i].sprite.getGlobalBounds().width >= obj->sprite.getPosition().x - obj->sprite.getGlobalBounds().width / 2.0f) &&
 			!obj->jumpStatus)
 		{
-			cout << "bricks intersect " << i << endl;
-			cout << bricks[i].sprite.getPosition().y - obj->sprite.getPosition().y - obj->sprite.getGlobalBounds().height / 2.0f << endl;
 			if (obj->vy > 0)
 			{
 				//stop falling when hit the floor and set the correct texture
@@ -336,7 +360,6 @@ bool Game::onFloor(Object* obj)
 			(pipes[i].sprite.getPosition().x + pipes[i].sprite.getGlobalBounds().width >= obj->sprite.getPosition().x - obj->sprite.getGlobalBounds().width / 2.0f) &&
 			!obj->jumpStatus)
 		{
-			cout << "pipes intersect " << i << endl;
 			if (obj->onFloor || obj->vy > 0)
 			{
 				if (obj->vy > 0)
@@ -365,11 +388,7 @@ bool Game::checkSideIntersection(Object* obj, int s)
 
 	//check pipe intersections
 	for (int i = 0; i < 4; i++) 
-	{
-		//cout << "piperight"<<i<<": "<< pipes[i].boundingBox().left + pipes[i].boundingBox().width << endl;
-		//cout << "pipeleft" << i << ": " << pipes[i].boundingBox().left << endl;
-		//cout << "dist pipe" <<i <<": " << abs(obj->boundingBox().left - (pipes[i].boundingBox().left + pipes[i].boundingBox().width)) << endl;;
-		
+	{		
 		if (obj->boundingBox().intersects(pipes[i].boundingBox()) && s == obj->prevSide)
 		{
 			if (dynamic_cast<Turtle*>(obj)) 
@@ -381,7 +400,6 @@ bool Game::checkSideIntersection(Object* obj, int s)
 			{
 				obj->objectSpeed = 0.0f;
 				obj->prevSide = s;
-				cout << "pipe side" << endl;
 				return true;
 			}
 		}
@@ -398,7 +416,6 @@ bool Game::checkSideIntersection(Object* obj, int s)
 		{
 			obj->objectSpeed = 0.0f;
 			obj->prevSide = s;
-			cout << "brick side" << endl;
 			return true;
 		}
 		else
@@ -428,7 +445,6 @@ bool Game::checkSideIntersection(Object* obj, int s)
 		}
 		obj->objectSpeed = 0.0f;
 		obj->prevSide = s;
-		cout << "out of window" << endl;
 		return true;
 	}
 	else
@@ -485,4 +501,123 @@ bool Game::checkCollision(Turtle* t, Mario* m, int& side)
 		return false;
 }
 
+void Game::drawScore()
+{
+	text.setString(scoreboard.getScore());
+	text.setCharacterSize(24);
+	text.setStyle(Text::Bold);
 
+	window->draw(text);
+}
+
+void Game::drawLives()
+{
+	scoreboard.sprite.setTextureRect(IntRect(0, 0, scoreboard.texture.getSize().x * scoreboard.getLives(), scoreboard.texture.getSize().y));
+	window->draw(scoreboard.sprite);
+}
+
+bool Game::checkGameStatus()
+{
+	if (score == MAX_TURTLE_NUMBER * 100)
+	{
+		text.setString("You win!");
+		text.setCharacterSize(72);
+		text.setStyle(Text::Bold);
+		window->draw(text);
+		return true;
+	}
+	else if (scoreboard.getLives() == 0)
+	{
+		text.setString("Game Over");
+		text.setCharacterSize(72);
+		text.setStyle(Text::Bold);
+		window->draw(text);
+		return true;
+	}
+	else
+		return false;
+}
+
+void Game::menu(int speed)
+{
+	Clock clock;
+	while (window->isOpen()) 
+	{
+		window->clear();
+		text.setString("Start a new game (Enter)\nExit (Esc)");
+		text.setCharacterSize(36);
+		text.setStyle(Text::Bold);
+		window->draw(text);
+		window->display();
+
+		Event event;
+		while (true)
+		{
+			if (window->pollEvent(event))
+			{
+				if (Event::Closed)
+					window->close();
+
+				if (event.type == Event::KeyPressed)
+				{
+					if (event.key.code == (sf::Keyboard::Enter))
+						break;
+					else if (event.key.code == (sf::Keyboard::Escape))
+						window->close();
+				}
+			}
+		}
+
+		update();
+		// clear all objects from the window
+		Object* cur = objects;
+		while (cur)
+		{
+			removeObject(cur);
+			cur = objects;
+		}
+
+		// set the initial condition
+		scoreboard.setScore(0);
+		scoreboard.setLives(3);
+		this->speed = speed;
+
+		// set mario
+		mario = addMario();
+		mario->setPosition(Vector2f(WINDOW_WIDTH / 2.0f, float(WINDOW_HEIGHT * 19.0f / 25.0f)));
+		side = 0;
+		score = 0;
+		
+		clock.restart();
+		while (clock.getElapsedTime().asSeconds() < 3.0f);	// wait for 3 seconds to return to menu
+	}
+}
+
+bool Game::turtleCollision(Turtle* t)
+{
+	Object* tur = objects;
+	while (tur)
+	{
+		if (dynamic_cast<Turtle*>(tur) && tur != t)
+		{
+			//if ((t->sprite.getPosition().y - tur->sprite.getPosition().y < t->objectVerticalSpeed) &&
+			//	t->turtleDir != dynamic_cast<Turtle*>(tur)->turtleDir)
+			//{
+				if (t->turtleDir == 0 &&
+					t->sprite.getPosition().x - t->boundingBox().width / 2.0f - (tur->sprite.getPosition().x + tur->boundingBox().width / 2.0f) < t->objectSpeed)
+				{
+
+					return true;
+				}
+				else if (t->turtleDir == 1 &&
+					tur->sprite.getPosition().x - tur->boundingBox().width / 2.0f - (t->sprite.getPosition().x + t->boundingBox().width / 2.0f) < t->objectSpeed)
+				{
+
+					return true;
+				}
+			//}
+		}
+		tur = tur->next;
+	}
+	return false;
+}
